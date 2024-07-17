@@ -1,0 +1,120 @@
+disini anda berperan sebagai seorang ai engineer, disini anda membantu saya dalam mengerjakan sebuah project prediksi penutupan harga saham ANTM.JK menggunakan ltsm. saya sudah membuat model ltsm dan menyimpan model dan objek dari project saya. sekarang saya sedang melakukan tahap developer model ke website, saya memiliki kendala tentang algoritma dan logika dalam pemrogramannya. berikut adalah kode untuk html yang sudah saya style dengan css.
+ <div class="signup-container">
+        <div class="left-container">
+            <h1>ANTM.JK Stock Close Price Prediction</h1>
+            <div class="puppy">
+                <img src="https://seeklogo.com/images/A/antam-logo-44351C08B9-seeklogo.com.png" alt="Logo">
+            </div>
+        </div>
+        <div class="right-container">
+            <header>
+                <h1>hello trader, I Can Help You Predict</h1>
+                <div class="set">
+                    <div class="pets-birthday">
+                        <label for="date_predict">The Date You Want To Predict </label>
+                        <input type="text" name="date_predict" placeholder="YYYY-MM-DD">
+                    </div>
+                    <div class="pets-birthday">
+                        <label for="result_predict">Result Predict</label><br>
+                        <input type="text" name="result_predict">
+                    </div>
+                </div>
+            </header>
+            <footer>
+                <div class="set">
+                    <button type="submit" id="back">Back</button>
+                    <button type="submit" id="next">Next</button>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+dan ini adalah program yang memiliki kendala,
+import pandas as pd
+import numpy as np
+from keras.models import load_model
+import pickle
+from datetime import datetime, timedelta
+from flask import Flask
+from flask import render_template
+from flask import request
+
+app = Flask(__name__)
+
+# Muat kembali model LSTM
+model = load_model('model/model_lstm.h5')
+
+# Muat kembali scaler
+with open('model/scaler.pkl', 'rb') as f:
+    scaler = pickle.load(f)
+
+# Muat kembali DataFrame
+df = pd.read_pickle('model/dataframe.pkl')
+
+@app.route("/")
+
+def stock():
+    return render_template("index.html")
+
+@app.route("/predict", methods=['POTS'])
+
+def predict():
+    date_predict = datetime(request.form.get("date-predict"))
+    new_data = [[date_predict]]
+    result = scaler.predict(new_data)
+
+
+dan berikut adalah kode untuk memprediksi harga close saham dari model yang sudah saya buat di google collab
+from keras.models import load_model
+
+# Muat kembali model LSTM
+model = load_model('model_lstm.h5')
+
+# Muat kembali scaler
+with open('scaler.pkl', 'rb') as f:
+    scaler = pickle.load(f)
+
+# Muat kembali DataFrame
+df = pd.read_pickle('dataframe.pkl')
+def predict_future_close(date_to_predict, model, scaler, df, look_back=60):
+    # Konversi tanggal input menjadi datetime
+    date_to_predict = datetime.strptime(date_to_predict, '%Y-%m-%d')
+
+    # Tentukan tanggal terakhir dalam dataset
+    last_date = df.index[-1]
+
+    # Buat array dengan tanggal dari last_date hingga date_to_predict
+    date_range = pd.date_range(start=last_date, end=date_to_predict, freq='B')
+
+    # Ambil data penutupan terakhir sebagai titik awal prediksi
+    last_close = df['Close'].values[-look_back:]
+
+    # Normalisasi harga penutupan terakhir
+    last_close_scaled = scaler.transform(last_close.reshape(-1, 1))
+
+    # List untuk menyimpan prediksi05
+    predictions = []
+
+    for _ in date_range[1:]:
+        # Buat input data berdasarkan look_back
+        input_data = np.array(last_close_scaled[-look_back:]).reshape(1, look_back, 1)
+
+        # Lakukan prediksi
+        predicted_close_scaled = model.predict(input_data)
+
+        # Inverse transform untuk mendapatkan harga asli
+        predicted_close = scaler.inverse_transform(predicted_close_scaled)
+
+        # Simpan prediksi
+        predictions.append(predicted_close[0][0])
+
+        # Tambahkan prediksi ke dalam list last_close_scaled untuk iterasi berikutnya
+        last_close_scaled = np.append(last_close_scaled, predicted_close_scaled, axis=0)
+
+    return predictions[-1], date_range[-1]
+# Contoh penggunaan fungsi prediksi
+date_to_predict = '2024-05-02'
+predicted_price, predicted_date = predict_future_close(date_to_predict, model, scaler, df)
+print(f"Prediksi harga penutupan untuk {predicted_date.date()} adalah {predicted_price:.2f}")
+
+tolong saya untuk melanjutkan atau apa bila ada yang salah terhadap kode tersebut anda bisa langsung memperbaikinya, tanpa anda menggunakan javascript. disini saya menggunakan API end point dari flask.
