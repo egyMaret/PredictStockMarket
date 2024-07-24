@@ -1,0 +1,17 @@
+name: prediction-stock
+services:
+  - name: prediction-stock-service
+    ports:
+      - http: 80
+    instance_types:
+      - small
+    routes:
+      - http: /
+    resources:
+      cpu: 1000m
+      memory: 256Mi
+    regions:
+      - eu-west-1
+    env:
+      - key: FLASK_DISPLAY_MODE
+        value: fullscreen
